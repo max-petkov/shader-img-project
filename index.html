@@ -20,18 +20,18 @@
 </head>
 <body>
     <main>
-        <div data-scroll style="display: none;">
+        <div data-scroll>
             <div class="page">
                 <header>
                     <h1>Oceans</h1>
-                    <img src="img/header.jpg" alt="">
+                    <img loading="lazy" src="img/header.jpg" alt="">
                 </header>
                 <!-- BEGIN grid -->
                 <div class="grid">
                     <!-- BEGIN item -->
                     <a href="https://www.livescience.com/octopuses-punch-fish.html" class="item item_v">
                         <div class="item__image">
-                            <img src="img/1.jpg" alt="">
+                            <img loading="lazy" src="img/1.jpg" alt="">
                             <div class="item__meta">December 23, 2020</div>
                         </div>
 
@@ -42,7 +42,7 @@
                     <!-- BEGIN item -->
                     <a href="https://www.livescience.com/balloon-like-comb-jelly-discovered-puerto-rico.html" class="item item_h">
                         <div class="item__image">
-                            <img src="img/2.jpg" alt="">
+                            <img loading="lazy" src="img/2.jpg" alt="">
                             <div class="item__meta">December 01, 2020</div>
                         </div>
 
@@ -53,7 +53,7 @@
                     <!-- BEGIN item -->
                     <a href="https://www.livescience.com/largest-recorded-swarm-of-deep-sea-fish.html" class="item item_h">
                         <div class="item__image">
-                            <img src="img/4.jpg" alt="">
+                            <img loading="lazy" src="img/4.jpg" alt="">
                             <div class="item__meta">November 26, 2020</div>
                         </div>
 
@@ -64,7 +64,7 @@
                     <!-- BEGIN item -->
                     <a href="https://www.livescience.com/mantis-shrimp-property-wars.html" class="item item_v">
                         <div class="item__image">
-                            <img src="img/3.jpg" alt="">
+                            <img loading="lazy" src="img/3.jpg" alt="">
                             <div class="item__meta">November 03, 2020</div>
                         </div>
 
@@ -76,7 +76,7 @@
                     <!-- BEGIN item -->
                     <a href="https://www.livescience.com/megalodon-big-for-a-shark.html" class="item item_v">
                         <div class="item__image">
-                            <img src="img/1.jpg" alt="">
+                            <img loading="lazy" src="img/1.jpg" alt="">
                             <div class="item__meta">October 05, 2020</div>
                         </div>
 
@@ -87,7 +87,7 @@
                     <!-- BEGIN item -->
                     <a href="https://www.livescience.com/tiny-sunfish-larva.html" class="item item_h">
                         <div class="item__image">
-                            <img src="img/2.jpg" alt="">
+                            <img loading="lazy" src="img/2.jpg" alt="">
                             <div class="item__meta">July 27, 2020</div>
                         </div>
 
@@ -98,7 +98,7 @@
                     <!-- BEGIN item -->
                     <a href="https://www.livescience.com/supergiant-isopod-newfound-species.html" class="item item_h">
                         <div class="item__image">
-                            <img src="img/4.jpg" alt="">
+                            <img loading="lazy" src="img/4.jpg" alt="">
                             <div class="item__meta">August 18, 2020</div>
                         </div>
 
@@ -109,7 +109,7 @@
                     <!-- BEGIN item -->
                     <a href="https://www.livescience.com/worlds-deepest-octopus.html" class="item item_v">
                         <div class="item__image">
-                            <img src="img/3.jpg" alt="">
+                            <img loading="lazy" src="img/3.jpg" alt="">
                             <div class="item__meta">June 01, 2020</div>
                         </div>
 
@@ -137,7 +137,10 @@
     <div id="container">
         <canvas></canvas>
     </div>
-    <!-- <script type="module" src="https://raw.githubusercontent.com/mrdoob/three.js/dev/build/three.module.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.27/bundled/lenis.min.js"></script> 
+    <script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fontfaceobserver@2.3.0/fontfaceobserver.standalone.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script type="module" src="js/main.js"></script>
 </body>
 </html>
