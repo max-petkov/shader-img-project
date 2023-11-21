@@ -370,7 +370,7 @@ Sketch.prototype.init = function() {
         this.resize();
         this.mouseMove();
         this.hoverImage();
-        // this.composerPass(); // It is used to scale bottom part of the image on scroll
+        this.composerPass(); // It is used to scale bottom part of the image on scroll
         this.animate();
         this.hideHTMLImages();
     }.bind(this));
