@@ -1,5 +1,9 @@
-import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.min.js";
-import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/controls/OrbitControls.js";
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 function Sketch() {
     this.canvas = document.getElementById("container").firstElementChild;
@@ -12,6 +16,8 @@ function Sketch() {
     this.renderer = null;
     this.mesh = null;
     this.controls = null;
+    this.composer = null;
+    this.customPass = null;
     this.raycaster = new THREE.Raycaster();
     this.pointer = new THREE.Vector2();
     this.size = {
@@ -19,6 +25,8 @@ function Sketch() {
         height: window.innerHeight
     }
     this.lenis = new Lenis({duration: 0.9});
+    this.scrollCurrent = 0;
+    this.scrollPrevious = 0;
 }
 
 Sketch.prototype.createScene = function() {
@@ -63,6 +71,7 @@ Sketch.prototype.createRenderer = function() {
         alpha: true,
     });
     this.renderer.setSize(this.size.width, this.size.height);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.render(this.scene, this.camera);
 }
 
@@ -89,9 +98,19 @@ Sketch.prototype.createControls = function() {
 Sketch.prototype.animate = function() {
     gsap.ticker.add((time) => {
         this.lenis.raf(time * 1000);
-        this.updateImagesPosition();
+        this.scrollPrevious = this.scrollCurrent;
+        this.scrollCurrent = this.lenis.scroll;
         this.loadedImages.forEach(img => img.material.uniforms.uTime.value = time);
-        this.renderer.render(this.scene, this.camera);
+
+        if(Math.round(this.scrollPrevious) !== Math.round(this.scrollCurrent)) {
+            this.updateImagesPosition();
+
+            if(this.customPass) this.customPass.uniforms.uScrollSpeed.value = Math.abs(this.lenis.velocity * 0.01);
+        }
+        
+        
+        if(!this.composer) this.renderer.render(this.scene, this.camera);
+        else this.composer.render(); // We are using the composer render because we apply scroll distorsions on the bottom part of images
     });
 }
 
@@ -99,11 +118,23 @@ Sketch.prototype.fragment = function() {
     return `
         uniform float uTime;
         uniform sampler2D uImage;
+        uniform float uHoverState;
+
         varying vec2 vUv;
 
         void main() {
             vec4 img = texture2D(uImage, vUv);
-            gl_FragColor = img;
+
+            vec2 p = vUv;
+			float x = uHoverState;
+			x = smoothstep(.0,1.0,(x*2.0+p.y-1.0));
+			vec4 imgs = mix(
+				texture2D(uImage, (p-.5)*(1.-x)+.5), 
+				texture2D(uImage, (p-.5)*x+.5), 
+				x);
+
+            //gl_FragColor = img;
+            gl_FragColor = imgs;
         }
     `;
 }
@@ -206,7 +237,7 @@ Sketch.prototype.vertex = function() {
 Sketch.prototype.createImages = function() {
     this.imgs.forEach((img, i) => {
         const bounds = img.getBoundingClientRect();
-        const geometry = new THREE.PlaneGeometry(bounds.width, bounds.height, 25, 25);
+        const geometry = new THREE.PlaneGeometry(1, 1, 25, 25);
         const texture = new THREE.TextureLoader().load(img.src);
         const material = new THREE.ShaderMaterial({
             uniforms: {
@@ -222,6 +253,7 @@ Sketch.prototype.createImages = function() {
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.y = -bounds.top + (this.size.height/2) - (bounds.height / 2);
         mesh.position.x = bounds.left - (this.size.width / 2) + (bounds.width/2);
+        mesh.scale.set(bounds.width, bounds.height); // Setting the size of the geometry this way will be easier to be resized afterwards
 
         this.scene.add(mesh);
 
@@ -281,6 +313,48 @@ Sketch.prototype.hoverImage = function() {
     });
 }
 
+Sketch.prototype.composerPass = function() {
+    this.composer = new EffectComposer(this.renderer);
+      this.renderPass = new RenderPass(this.scene, this.camera);
+      this.composer.addPass(this.renderPass);
+
+      //custom shader pass
+      let counter = 0.0;
+      this.myEffect = {
+        uniforms: {
+          "tDiffuse": { value: null },
+          "uScrollSpeed": {value: 0},
+        },
+        vertexShader: `
+        varying vec2 vUv;
+
+        void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        }
+        `,
+        fragmentShader: `
+        uniform sampler2D tDiffuse;
+        uniform float uScrollSpeed;
+
+        varying vec2 vUv;
+
+        void main(){
+            vec2 newUv = vUv;
+            float area = smoothstep(0.5, 0.,vUv.y);
+            area = pow(area, 7.);
+            newUv.x -= (vUv.x - 0.5) * 0.1 * (area * uScrollSpeed);
+            gl_FragColor = texture2D(tDiffuse, newUv);
+        }
+        `
+      }
+
+      this.customPass = new ShaderPass(this.myEffect);
+      this.customPass.renderToScreen = true;
+
+      this.composer.addPass(this.customPass);
+}
+
 Sketch.prototype.initLenis = function(time) {
     this.lenis.raf(time);
     requestAnimationFrame(() => this.initLenis(time));
@@ -296,6 +370,7 @@ Sketch.prototype.init = function() {
         this.resize();
         this.mouseMove();
         this.hoverImage();
+        // this.composerPass(); // It is used to scale bottom part of the image on scroll
         this.animate();
         this.hideHTMLImages();
     }.bind(this));
